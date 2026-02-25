@@ -14,7 +14,7 @@ async function initModel() {
     try {
         statusEl.innerHTML = '<div class="loader"></div> Loading AI Engine... (Downloading 13MB ONNX Model)';
 
-        // Configure WebAssembly paths to use the CDN, so it doesn't look for .wasm locally
+        // Configure WebAssembly paths to use the CDN
         ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/';
 
         // Initialize ONNX Runtime session
@@ -85,23 +85,14 @@ function handleFile(file) {
 async function runInference() {
     const imgData = inCtx.getImageData(0, 0, 256, 256).data;
 
-    // Convert to Float32Array [1, 3, 256, 256] planar format and apply ImageNet Normalization
+    // Convert to Float32Array [1, 3, 256, 256] planar format
     const float32Data = new Float32Array(3 * 256 * 256);
-
-    // ImageNet Mean and Std
-    const mean = [0.485, 0.456, 0.406];
-    const std = [0.229, 0.224, 0.225];
 
     for (let i = 0; i < 256 * 256; i++) {
         // imgData is RGBA interleaved
-        let r = imgData[i * 4] / 255.0;
-        let g = imgData[i * 4 + 1] / 255.0;
-        let b = imgData[i * 4 + 2] / 255.0;
-
-        // Normalize (val - mean) / std
-        float32Data[i] = (r - mean[0]) / std[0];                             // R
-        float32Data[256 * 256 + i] = (g - mean[1]) / std[1];                 // G
-        float32Data[2 * 256 * 256 + i] = (b - mean[2]) / std[2];             // B
+        float32Data[i] = imgData[i * 4] / 255.0;                   // R
+        float32Data[256 * 256 + i] = imgData[i * 4 + 1] / 255.0;   // G
+        float32Data[2 * 256 * 256 + i] = imgData[i * 4 + 2] / 255.0; // B
     }
 
     try {
