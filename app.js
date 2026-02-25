@@ -13,6 +13,10 @@ const statusEl = document.getElementById('status');
 async function initModel() {
     try {
         statusEl.innerHTML = '<div class="loader"></div> Loading AI Engine... (Downloading 13MB ONNX Model)';
+
+        // Configure WebAssembly paths to use the CDN, so it doesn't look for .wasm locally
+        ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/';
+
         // Initialize ONNX Runtime session
         session = await ort.InferenceSession.create('./best_model_20_epochs.onnx', {
             executionProviders: ['wasm']
@@ -20,7 +24,7 @@ async function initModel() {
         statusEl.innerHTML = '✅ Engine Ready. Waiting for image.';
         statusEl.style.color = '#4ade80';
     } catch (e) {
-        statusEl.innerHTML = '❌ Failed to load AI Engine.';
+        statusEl.innerHTML = '❌ Failed to load AI Engine: ' + e.message;
         statusEl.style.color = '#ef4444';
         console.error(e);
     }
@@ -64,23 +68,23 @@ dropZone.addEventListener('drop', (e) => {
 function handleFile(file) {
     if (!file || !session) return;
     statusEl.innerHTML = '<div class="loader"></div> Processing...';
-    
+
     const img = new Image();
     img.src = URL.createObjectURL(file);
     img.onload = () => {
         // Draw to input canvas (256x256) for inference preprocessing
         inCtx.drawImage(img, 0, 0, 256, 256);
-        
+
         // Draw to display canvas (scaled) for visual UI
         dispCtx.drawImage(img, 0, 0, 256, 256);
-        
+
         runInference();
     }
 }
 
 async function runInference() {
     const imgData = inCtx.getImageData(0, 0, 256, 256).data;
-    
+
     // Convert to Float32Array [1, 3, 256, 256] planar format
     const float32Data = new Float32Array(3 * 256 * 256);
     for (let i = 0; i < 256 * 256; i++) {
@@ -94,11 +98,11 @@ async function runInference() {
         const tensor = new ort.Tensor('float32', float32Data, [1, 3, 256, 256]);
         const results = await session.run({ 'input': tensor });
         const output = results.output.data; // Float32Array of size 6 * 256 * 256
-        
+
         // Output from model is [1, 6, 256, 256] logits.
         // We need argmax over dim 1.
         renderOutput(output);
-        
+
         statusEl.innerHTML = '✅ Segmentation Complete.';
     } catch (e) {
         console.error(e);
@@ -109,12 +113,12 @@ async function runInference() {
 
 function renderOutput(outputData) {
     const outImgData = outCtx.createImageData(256, 256);
-    
+
     for (let i = 0; i < 256 * 256; i++) {
         // Find argmax for pixel i among 6 classes
         let maxVal = -Infinity;
         let maxClass = 0;
-        
+
         for (let c = 0; c < 6; c++) {
             // outputData layout is [class_index][pixel_index]
             const val = outputData[c * 256 * 256 + i];
@@ -123,13 +127,13 @@ function renderOutput(outputData) {
                 maxClass = c;
             }
         }
-        
+
         const color = colorMap[maxClass];
         outImgData.data[i * 4] = color[0];     // R
         outImgData.data[i * 4 + 1] = color[1]; // G
         outImgData.data[i * 4 + 2] = color[2]; // B
         outImgData.data[i * 4 + 3] = maxClass === 0 ? 0 : 200; // Alpha (transparent for background)
     }
-    
+
     outCtx.putImageData(outImgData, 0, 0);
 }
