@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -104,7 +105,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         }
 
         .canvas-box h3 {
@@ -180,7 +181,7 @@
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
+            border: 3px solid rgba(255, 255, 255, .3);
             border-radius: 50%;
             border-top-color: #fff;
             animation: spin 1s ease-in-out infinite;
@@ -189,7 +190,9 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* Responsive */
@@ -200,19 +203,29 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>🚜 Offroad Autonomous Mapping AI</h1>
         <p class="subtitle">Real-time inference running securely inside your browser via WebAssembly & ONNX.</p>
 
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <span
+                style="background: var(--accent-color); color: white; padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 0.9rem;">
+                🏆 Model Accuracy: 51.07% mIoU
+            </span>
+        </div>
+
         <div class="upload-section" id="dropZone">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="17 8 12 3 7 8"></polyline>
                 <line x1="12" y1="3" x2="12" y2="15"></line>
             </svg>
             <h3 style="margin: 1rem 0 0.5rem 0;">Drag & Drop an Image</h3>
-            <p style="color: var(--text-muted); margin: 0; font-size: 0.9rem;">Supports JPG and PNG up to any resolution.</p>
+            <p style="color: var(--text-muted); margin: 0; font-size: 0.9rem;">Supports JPG and PNG up to any
+                resolution.</p>
             <input type="file" id="fileInput" accept="image/jpeg, image/png">
             <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Browse Files</button>
             <div id="status"></div>
@@ -235,15 +248,28 @@
         </div>
 
         <div class="legend">
-            <div class="legend-item"><div class="color-box" style="background: rgb(0,0,0);"></div> Background</div>
-            <div class="legend-item"><div class="color-box" style="background: rgb(34,139,34);"></div> Vegetation</div>
-            <div class="legend-item"><div class="color-box" style="background: rgb(205,133,63);"></div> Dirt/Terrain</div>
-            <div class="legend-item"><div class="color-box" style="background: rgb(244,164,96);"></div> Sandy Dirt</div>
-            <div class="legend-item"><div class="color-box" style="background: rgb(128,128,128);"></div> Road/Path</div>
-            <div class="legend-item"><div class="color-box" style="background: rgb(135,206,235);"></div> Sky</div>
+            <div class="legend-item">
+                <div class="color-box" style="background: rgb(0,0,0);"></div> Background
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background: rgb(34,139,34);"></div> Vegetation
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background: rgb(205,133,63);"></div> Dirt/Terrain
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background: rgb(244,164,96);"></div> Sandy Dirt
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background: rgb(128,128,128);"></div> Road/Path
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background: rgb(135,206,235);"></div> Sky
+            </div>
         </div>
     </div>
 
     <script src="app.js"></script>
 </body>
+
 </html>
