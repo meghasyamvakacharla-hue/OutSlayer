@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offroad Autonomous Mapping AI</title>
+    <!-- ONNX Runtime Web -->
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0E1117;
+            --panel-bg: #1E232F;
+            --accent-color: #2e6bba;
+            --accent-hover: #4a8cdb;
+            --text-color: #ffffff;
+            --text-muted: #a0aab2;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+            background: linear-gradient(90deg, #fff, #a0aab2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .upload-section {
+            background: var(--panel-bg);
+            border: 2px dashed #3a4252;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .upload-section:hover {
+            border-color: var(--accent-color);
+            background: #252a38;
+        }
+
+        .upload-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 1rem;
+        }
+
+        .upload-btn:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .canvas-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .canvas-box {
+            flex: 1;
+            background: var(--panel-bg);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .canvas-box h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+
+        canvas {
+            max-width: 100%;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+
+        /* Overlay canvas positions exactly over original canvas */
+        .preview-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            /* background: #000; */
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-wrapper canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #outputCanvas {
+            opacity: 0.6;
+        }
+
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            background: var(--panel-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        #status {
+            text-align: center;
+            margin-top: 1rem;
+            font-weight: 600;
+            color: #4ade80;
+            height: 24px;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .canvas-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚜 Offroad Autonomous Mapping AI</h1>
+        <p class="subtitle">Real-time inference running securely inside your browser via WebAssembly & ONNX.</p>
+
+        <div class="upload-section" id="dropZone">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <h3 style="margin: 1rem 0 0.5rem 0;">Drag & Drop an Image</h3>
+            <p style="color: var(--text-muted); margin: 0; font-size: 0.9rem;">Supports JPG and PNG up to any resolution.</p>
+            <input type="file" id="fileInput" accept="image/jpeg, image/png">
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Browse Files</button>
+            <div id="status"></div>
+        </div>
+
+        <div class="canvas-container">
+            <div class="canvas-box">
+                <h3>Original Image</h3>
+                <div class="preview-wrapper">
+                    <canvas id="inputCanvas" width="256" height="256"></canvas>
+                </div>
+            </div>
+            <div class="canvas-box">
+                <h3>AI Prediction Overlay</h3>
+                <div class="preview-wrapper">
+                    <canvas id="displayCanvas" width="256" height="256"></canvas>
+                    <canvas id="outputCanvas" width="256" height="256"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><div class="color-box" style="background: rgb(0,0,0);"></div> Background</div>
+            <div class="legend-item"><div class="color-box" style="background: rgb(34,139,34);"></div> Vegetation</div>
+            <div class="legend-item"><div class="color-box" style="background: rgb(205,133,63);"></div> Dirt/Terrain</div>
+            <div class="legend-item"><div class="color-box" style="background: rgb(244,164,96);"></div> Sandy Dirt</div>
+            <div class="legend-item"><div class="color-box" style="background: rgb(128,128,128);"></div> Road/Path</div>
+            <div class="legend-item"><div class="color-box" style="background: rgb(135,206,235);"></div> Sky</div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
