@@ -12,4 +12,5 @@ env/
 Offroad_Segmentation_Training_Dataset/
 Offroad_Segmentation_testImages/
 *.pth
+!best_model_20_epochs.pth
 *.zip
