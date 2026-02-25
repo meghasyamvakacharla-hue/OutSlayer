@@ -21,7 +21,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
 
 model = lraspp_mobilenet_v3_large(weights=None, weights_backbone=None, num_classes=num_classes)
-model.load_state_dict(torch.load("best_model_plus_10.pth", map_location=device, weights_only=True))
+model.load_state_dict(torch.load("best_model_20_epochs.pth", map_location=device, weights_only=True))
 model = model.to(device)
 model.eval()
 
